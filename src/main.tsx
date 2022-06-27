@@ -7,6 +7,7 @@ import "dotenv/config";
 
 /* -------------------------- Import other imports -------------------------- */
 
+import { readFileSync, writeFileSync } from "fs";
 import { App } from "@slack/bolt";
 import {
 	Section,
@@ -37,7 +38,9 @@ const userApp = new App({
 (async () => {
 	await botApp.start(process.env.PORT || 3000);
 
-	/* ----------------------------- React to /bunny ---------------------------- */
+	/* -------------------------------------------------------------------------- */
+	/*                               React to /bunny                              */
+	/* -------------------------------------------------------------------------- */
 
 	botApp.command("/bunny", async ({ ack, respond }) => {
 		await ack();
@@ -162,6 +165,59 @@ const userApp = new App({
 				</Blocks>
 			),
 		});
+	});
+
+	/* -------------------------------------------------------------------------- */
+	/*                           React to /bunny-toggle                           */
+	/* -------------------------------------------------------------------------- */
+
+	botApp.command("/bunny-toggle", async ({ ack, body, respond }) => {
+		ack();
+
+		const channelRegex = /(?<=<#).*?((?=>)|(?=\|))/;
+		const channelRegexMatches = channelRegex.exec(body.text);
+
+		if (channelRegexMatches === null) {
+			respond("That channel doesn't appear to exist.");
+			return;
+		}
+
+		const channelID = channelRegexMatches[0];
+		const userID = body.user_id;
+
+		/* ---------------------------- Check if allowed ---------------------------- */
+
+		let isUserOwner =
+			(await botApp.client.conversations.info({ channel: channelID }))
+				.channel?.creator === userID;
+
+		let isUserAdmin = (await botApp.client.users.info({ user: userID }))
+			.user?.is_admin;
+
+		/* -------------------------- If not allowed, deny -------------------------- */
+
+		if (!isUserOwner && !isUserAdmin) {
+			respond({
+				text: "Only the channel owner or a Workspace Admin can run this command.",
+			});
+			return;
+		}
+
+		/* -------------------------- If allowed, do action ------------------------- */
+
+		let { blockedChannels } = JSON.parse(
+			readFileSync("./blocklist.json", "utf8")
+		);
+
+		if (blockedChannels.includes(channelID)) {
+			blockedChannels.splice(blockedChannels.indexOf(channelID), 1);
+			respond({ text: `<#${channelID}> is now unblocked!` });
+		} else {
+			blockedChannels.push(channelID);
+			respond({ text: `<#${channelID}> is now blocked!` });
+		}
+
+		writeFileSync("./blocklist.json", JSON.stringify({ blockedChannels }));
 	});
 
 	console.log("⚡️ Bolt app is running!");
