@@ -7,7 +7,7 @@ import "dotenv/config";
 
 /* -------------------------- Import other imports -------------------------- */
 
-import { readFileSync, writeFileSync } from "fs";
+import { readFileSync, writeFileSync, appendFileSync } from "fs";
 import { App, RespondFn } from "@slack/bolt";
 import {
 	Section,
@@ -19,6 +19,7 @@ import {
 	Fragment,
 } from "jsx-slack";
 
+import { LogLevel } from "@slack/bolt";
 import { Match } from "@slack/web-api/dist/response/SearchMessagesResponse";
 
 /* ----------------------- Set up bot and user clients ---------------------- */
@@ -28,11 +29,71 @@ const botApp = new App({
 	signingSecret: process.env.SLACK_SIGNING_SECRET,
 	socketMode: true,
 	appToken: process.env.SLACK_APP_TOKEN,
+	logger: {
+		debug: (...msgs) => {
+			appendFileSync(
+				"logs.txt",
+				`[BOT ] [${Date.now()}] [DEBUG] ${JSON.stringify(msgs)}\n`
+			);
+		},
+		info: (...msgs) => {
+			appendFileSync(
+				"logs.txt",
+				`[BOT ] [${Date.now()}] [INFO ] ${JSON.stringify(msgs)}\n`
+			);
+		},
+		warn: (...msgs) => {
+			appendFileSync(
+				"logs.txt",
+				`[BOT ] [${Date.now()}] [WARN ] ${JSON.stringify(msgs)}\n`
+			);
+		},
+		error: (...msgs) => {
+			appendFileSync(
+				"logs.txt",
+				`[BOT ] [${Date.now()}] [ERROR] ${JSON.stringify(msgs)}\n`
+			);
+		},
+		// This are required...but will really just be ignored
+		setLevel: (level) => {},
+		getLevel: () => LogLevel.DEBUG,
+		setName: (name) => {},
+	},
 });
 
 const userApp = new App({
 	token: process.env.SLACK_USER_TOKEN,
 	signingSecret: process.env.SLACK_SIGNING_SECRET,
+	logger: {
+		debug: (...msgs) => {
+			appendFileSync(
+				"logs.txt",
+				`[USER] [${Date.now()}] [DEBUG] ${JSON.stringify(msgs)}\n`
+			);
+		},
+		info: (...msgs) => {
+			appendFileSync(
+				"logs.txt",
+				`[USER] [${Date.now()}] [INFO ] ${JSON.stringify(msgs)}\n`
+			);
+		},
+		warn: (...msgs) => {
+			appendFileSync(
+				"logs.txt",
+				`[USER] [${Date.now()}] [WARN ] ${JSON.stringify(msgs)}\n`
+			);
+		},
+		error: (...msgs) => {
+			appendFileSync(
+				"logs.txt",
+				`[USER] [${Date.now()}] [ERROR] ${JSON.stringify(msgs)}\n`
+			);
+		},
+		// This are required...but will really just be ignored
+		setLevel: (level) => {},
+		getLevel: () => LogLevel.DEBUG,
+		setName: (name) => {},
+	},
 });
 
 /* --------------------------------- Run bot -------------------------------- */
@@ -273,7 +334,7 @@ async function getSortedChannels(messages: Match[]) {
 	let sortedChannels;
 
 	messages.map((match) => {
-		/* ---------------------- Return if not public channel ---------------------- */
+		/* ---------------------- Ignore if not public channel ---------------------- */
 
 		if (
 			match.channel.is_channel !== true ||
