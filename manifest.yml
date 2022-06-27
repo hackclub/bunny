@@ -1,0 +1,31 @@
+display_information:
+    name: Bunny
+features:
+    bot_user:
+        display_name: Bunny
+        always_online: false
+    slash_commands:
+        - command: /bunny
+          description: Bunny!
+          usage_hint: "[message count]"
+          should_escape: false
+        - command: /bunny-toggle
+          description: Toggle whether or not Bunny sees your channel
+          usage_hint: "[channel]"
+          should_escape: true
+oauth_config:
+    scopes:
+        user:
+            - search:read
+        bot:
+            - channels:read
+            - chat:write
+            - commands
+            - groups:read
+            - users:read
+settings:
+    interactivity:
+        is_enabled: true
+    org_deploy_enabled: false
+    socket_mode_enabled: true
+    token_rotation_enabled: false
