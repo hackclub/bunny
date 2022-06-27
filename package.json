@@ -1,0 +1,29 @@
+{
+	"name": "bunny",
+	"version": "1.0.0",
+	"description": "🐇 What's trending on your Slack?",
+	"main": "index.js",
+	"scripts": {
+		"start": "./node_modules/.bin/esbuild ./src/main.tsx --bundle --outfile=out.js --platform=node && node out.js"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/mutammim/bunny.git"
+	},
+	"keywords": [],
+	"author": "mutammim",
+	"license": "",
+	"bugs": {
+		"url": "https://github.com/mutammim/bunny/issues"
+	},
+	"homepage": "https://github.com/mutammim/bunny#readme",
+	"dependencies": {
+		"@slack/bolt": "^3.11.3",
+		"dotenv": "^16.0.1",
+		"esbuild": "^0.14.45",
+		"jsx-slack": "^5.0.0"
+	},
+	"devDependencies": {
+		"prettier": "^2.7.1"
+	}
+}
