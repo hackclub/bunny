@@ -8,7 +8,13 @@ import "dotenv/config";
 /* -------------------------- Import other imports -------------------------- */
 
 import { readFileSync, writeFileSync, appendFileSync } from "fs";
-import { App, RespondFn } from "@slack/bolt";
+import {
+	AckFn,
+	App,
+	RespondArguments,
+	RespondFn,
+	SlashCommand,
+} from "@slack/bolt";
 import {
 	Section,
 	Blocks,
@@ -102,10 +108,26 @@ const userApp = new App({
 	await botApp.start(process.env.PORT || 3000);
 
 	/* -------------------------------------------------------------------------- */
-	/*                               React to /bunny                              */
+	/*                      React to /bunny and /bunny-fresh                      */
 	/* -------------------------------------------------------------------------- */
 
 	botApp.command("/bunny", async ({ ack, command, respond }) => {
+		bunnyDo(ack, command, respond, false);
+	});
+
+	botApp.command("/bunny-fresh", async ({ ack, command, respond, body }) => {
+		bunnyDo(ack, command, respond, true, body.user_id);
+	});
+
+	/* ------------------- Standardize /bunny and /bunny-fresh ------------------ */
+
+	async function bunnyDo(
+		ack: AckFn<string | RespondArguments>,
+		command: SlashCommand,
+		respond: RespondFn,
+		filterOutExistingChannels,
+		userID?: string
+	) {
 		await ack();
 
 		let count = 100;
@@ -134,6 +156,9 @@ const userApp = new App({
 		/* ------------------------------ Get channels ------------------------------ */
 
 		sortedChannels = await getSortedChannels(allMessages);
+
+		if (filterOutExistingChannels)
+			sortedChannels = await filterSortedChannels(userID, sortedChannels);
 
 		/* ------------------ Get channel topics for top 5 channels ----------------- */
 
@@ -210,7 +235,7 @@ const userApp = new App({
 				</Blocks>
 			),
 		});
-	});
+	}
 
 	/* -------------------------------------------------------------------------- */
 	/*                           React to /bunny-toggle                           */
@@ -378,6 +403,28 @@ async function getSortedChannels(messages: Match[]) {
 	/* ----------------------------- Return results ----------------------------- */
 
 	return sortedChannels;
+}
+
+/* -------------------------------------------------------------------------- */
+/*                       Filter out channels user is in                       */
+/* -------------------------------------------------------------------------- */
+
+async function filterSortedChannels(userID: string, sortedChannels: string[]) {
+	let filteredChannels = [];
+
+	for (let channelID of sortedChannels) {
+		let isUserInChannel = (
+			await botApp.client.conversations.members({
+				channel: channelID,
+			})
+		).members.includes(userID);
+
+		if (!isUserInChannel) {
+			filteredChannels.push(channelID);
+		}
+	}
+
+	return filteredChannels;
 }
 
 /* -------------------------------------------------------------------------- */
