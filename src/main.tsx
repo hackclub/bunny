@@ -169,20 +169,11 @@ const userApp = new App({
 
 		/* -------------------------------- Blank UI -------------------------------- */
 
-		const blankUI = (
-			<Fragment>
-				There are no channels to show! Try upping the message count in
-				your command, to search farther back.
-			</Fragment>
-		);
+		const blankText =
+			"There are no channels to show! Try upping the message count in your command, to search farther back.";
 
-		const blankFilteredUI = (
-			<Fragment>
-				There are no channels to show! Try upping the message count in
-				your command, to search farther back. Or, perhaps you're in
-				every channel? 😳
-			</Fragment>
-		);
+		const blankFilteredText =
+			"There are no channels to show! Try upping the message count in your command, to search farther back. Or, perhaps you're in every channel? 😳";
 
 		/* -------------------------------- Build UI -------------------------------- */
 
@@ -246,11 +237,7 @@ const userApp = new App({
 
 		if (usedChannels.length == 0) {
 			respond({
-				blocks: JSXSlack(
-					<Blocks>
-						{filterOutExistingChannels ? blankFilteredUI : blankUI}
-					</Blocks>
-				),
+				text: filterOutExistingChannels ? blankFilteredText : blankText,
 			});
 		} else {
 			respond({
