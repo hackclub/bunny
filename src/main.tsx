@@ -112,7 +112,7 @@ const userApp = new App({
 		let allMessages;
 		let sortedChannels;
 
-		/* -------------------------- Process command text -------------------------- */
+		/* --------------------- See if command text is argument -------------------- */
 
 		if (command.text && !isNaN(parseInt(command.text))) {
 			count = parseInt(command.text);
@@ -274,11 +274,22 @@ const userApp = new App({
 
 async function getLatestMessages(count: number, respond: RespondFn) {
 	let allMessages;
+	let query = "-is:dm";
+
+	/* -------------------- Modify query for blocked channels ------------------- */
+
+	let { blockedChannels } = JSON.parse(
+		readFileSync("./blocklist.json", "utf8")
+	);
+
+	for (let channelID in blockedChannels) {
+		query += ` -in:<#${channelID}>`;
+	}
 
 	/* ----------------------------- Get first page ----------------------------- */
 
 	let currentMessageData = await userApp.client.search.messages({
-		query: "-is:dm",
+		query,
 		sort: "timestamp",
 		sort_dir: "desc",
 		count: count <= 100 ? count : 100,
@@ -329,6 +340,10 @@ async function getLatestMessages(count: number, respond: RespondFn) {
 	return allMessages;
 }
 
+/* -------------------------------------------------------------------------- */
+/*                              Sort the channels                             */
+/* -------------------------------------------------------------------------- */
+
 async function getSortedChannels(messages: Match[]) {
 	let channelCounts = {};
 	let sortedChannels;
@@ -364,6 +379,10 @@ async function getSortedChannels(messages: Match[]) {
 
 	return sortedChannels;
 }
+
+/* -------------------------------------------------------------------------- */
+/*                Get topics array parallel to argument's array               */
+/* -------------------------------------------------------------------------- */
 
 async function getChannelTopics(channels: string[]) {
 	let topics: string[] = [];
