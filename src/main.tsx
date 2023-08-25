@@ -418,16 +418,22 @@ async function filterSortedChannels(userID: string, sortedChannels: string[]) {
 	let channelsUserIsIn: string[] = [];
 	let response: UsersConversationsResponse;
 	let keepPaging = true;
+	let cursor;
 
 	while (keepPaging) {
 		response = await botApp.client.users.conversations({
 			user: userID,
+			cursor,
 		});
 
 		response.channels.map((channel) => channelsUserIsIn.push(channel.id));
-		response.response_metadata.next_cursor
-			? (keepPaging = true)
-			: (keepPaging = false);
+
+		if (response.response_metadata.next_cursor) {
+			keepPaging = true;
+			cursor = response.response_metadata.next_cursor;
+		} else {
+			keepPaging = false;
+		}
 	}
 
 	/* --------------------- Filter out channels user is in --------------------- */
