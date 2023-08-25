@@ -27,6 +27,7 @@ import {
 
 import { LogLevel } from "@slack/bolt";
 import { Match } from "@slack/web-api/dist/response/SearchMessagesResponse";
+import { UsersConversationsResponse } from "@slack/web-api";
 
 /* ----------------------- Set up bot and user clients ---------------------- */
 
@@ -412,17 +413,28 @@ async function getSortedChannels(messages: Match[]) {
 async function filterSortedChannels(userID: string, sortedChannels: string[]) {
 	let filteredChannels = [];
 
-	for (let channelID of sortedChannels) {
-		let isUserInChannel = (
-			await botApp.client.conversations.members({
-				channel: channelID,
-			})
-		).members.includes(userID);
+	/* ------------------------- Get channels user is in ------------------------ */
 
-		if (!isUserInChannel) {
-			filteredChannels.push(channelID);
-		}
+	let channelsUserIsIn: string[] = [];
+	let response: UsersConversationsResponse;
+	let keepPaging = true;
+
+	while (keepPaging) {
+		response = await botApp.client.users.conversations({
+			user: userID,
+		});
+
+		response.channels.map((channel) => channelsUserIsIn.push(channel.id));
+		response.response_metadata.next_cursor
+			? (keepPaging = true)
+			: (keepPaging = false);
 	}
+
+	/* --------------------- Filter out channels user is in --------------------- */
+
+	filteredChannels = sortedChannels.filter(
+		(channel) => !channelsUserIsIn.includes(channel)
+	);
 
 	return filteredChannels;
 }
