@@ -133,7 +133,7 @@ const userApp = new App({
 
 		let count = 100;
 		let allMessages;
-		let sortedChannels;
+		let usedChannels;
 
 		/* --------------------- See if command text is argument -------------------- */
 
@@ -156,15 +156,32 @@ const userApp = new App({
 
 		/* ------------------------------ Get channels ------------------------------ */
 
-		sortedChannels = await getSortedChannels(allMessages);
+		usedChannels = await getSortedChannels(allMessages);
 
 		if (filterOutExistingChannels)
-			sortedChannels = await filterSortedChannels(userID, sortedChannels);
+			usedChannels = await filterSortedChannels(userID, usedChannels);
 
 		/* ------------------ Get channel topics for top 5 channels ----------------- */
 
 		let topFiveChannelTopics = await getChannelTopics(
-			sortedChannels.slice(0, 5)
+			usedChannels.slice(0, 5)
+		);
+
+		/* -------------------------------- Blank UI -------------------------------- */
+
+		const blankUI = (
+			<Fragment>
+				There are no channels to show! Try upping the message count in
+				your command, to search farther back.
+			</Fragment>
+		);
+
+		const blankFilteredUI = (
+			<Fragment>
+				There are no channels to show! Try upping the message count in
+				your command, to search farther back. Or, perhaps you're in
+				every channel? 😳
+			</Fragment>
 		);
 
 		/* -------------------------------- Build UI -------------------------------- */
@@ -173,9 +190,9 @@ const userApp = new App({
 			<Fragment>
 				<Header>Top channels</Header>
 
-				{sortedChannels.slice(0, 5).map((channel) => {
+				{usedChannels.slice(0, 5).map((channel) => {
 					let topicText =
-						topFiveChannelTopics[sortedChannels.indexOf(channel)];
+						topFiveChannelTopics[usedChannels.indexOf(channel)];
 
 					return (
 						<Fragment>
@@ -196,12 +213,12 @@ const userApp = new App({
 		);
 
 		const moreChannelsUI =
-			sortedChannels.length > 5 ? (
+			usedChannels.length > 5 ? (
 				<Fragment>
 					<Header>More channels</Header>
 
 					<Section>
-						{sortedChannels.slice(5, 15).map((channel) => (
+						{usedChannels.slice(5, 15).map((channel) => (
 							<Field>
 								<Mrkdwn raw>{"<#" + channel + ">"}</Mrkdwn>
 							</Field>
@@ -211,13 +228,13 @@ const userApp = new App({
 			) : undefined;
 
 		const evenMoreChannelsUI =
-			sortedChannels.length > 15 ? (
+			usedChannels.length > 15 ? (
 				<Fragment>
 					<Header>Even more channels</Header>
 
 					<Section>
 						<Mrkdwn raw>
-							{sortedChannels
+							{usedChannels
 								.slice(15)
 								.map((channel) => "<#" + channel + "> ")}
 						</Mrkdwn>
@@ -227,15 +244,25 @@ const userApp = new App({
 
 		/* --------------------------------- Respond -------------------------------- */
 
-		respond({
-			blocks: JSXSlack(
-				<Blocks>
-					{topChannelsUI}
-					{moreChannelsUI}
-					{evenMoreChannelsUI}
-				</Blocks>
-			),
-		});
+		if (usedChannels.length == 0) {
+			respond({
+				blocks: JSXSlack(
+					<Blocks>
+						{filterOutExistingChannels ? blankFilteredUI : blankUI}
+					</Blocks>
+				),
+			});
+		} else {
+			respond({
+				blocks: JSXSlack(
+					<Blocks>
+						{topChannelsUI}
+						{moreChannelsUI}
+						{evenMoreChannelsUI}
+					</Blocks>
+				),
+			});
+		}
 	}
 
 	/* -------------------------------------------------------------------------- */
