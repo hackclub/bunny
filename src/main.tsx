@@ -282,7 +282,7 @@ async function getLatestMessages(count: number, respond: RespondFn) {
 		readFileSync("./blocklist.json", "utf8")
 	);
 
-	for (let channelID in blockedChannels) {
+	for (let channelID of blockedChannels) {
 		query += ` -in:<#${channelID}>`;
 	}
 
