@@ -1,16 +1,22 @@
 display_information:
     name: Bunny
+    description: See the most active channels right now!
+    background_color: "#03544d"
 features:
     bot_user:
         display_name: Bunny
         always_online: false
     slash_commands:
         - command: /bunny
-          description: Bunny!
+          description: View most active channels
+          usage_hint: "[message count]"
+          should_escape: false
+        - command: /bunny-fresh
+          description: View most active channels not joined
           usage_hint: "[message count]"
           should_escape: false
         - command: /bunny-toggle
-          description: Toggle whether or not Bunny sees your channel
+          description: Toggle channel visibility to Bunny
           usage_hint: "[channel]"
           should_escape: true
 oauth_config:
