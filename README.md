@@ -18,7 +18,7 @@ Its search query filters out DMs and any blocked channels! Based on the search r
 
 If there's an error, the bot will reply to the user with it. Otherwise, it'll compose a UI & respond to the user with it! All communications from the bot to the user use ephemeral messages.
 
-The bot is designed to be run on a simple Linux server: just open a tool like `screen`, run `npm run start`, and you should be good to go! However, other approaches can also work well :)
+The bot is designed to be run on a simple Linux server: just open a tool like `screen`, run `npm run start`, and you should be good to go! However, other approaches can also work well. Currently, the bot is being run on Hack Club's Heroku but on the past, it was run with the example (`screen`) mentioned above!
 
 A few other notes:
 
