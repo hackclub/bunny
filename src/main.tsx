@@ -305,7 +305,7 @@ const userApp = new App({
 		writeFileSync("./blocklist.json", JSON.stringify({ blockedChannels }));
 	});
 
-	console.log("⚡️ Bolt app is running!");
+	console.log("⚡️ Bunny app is running!!");
 })();
 
 /* -------------------------------------------------------------------------- */
